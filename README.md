@@ -1,6 +1,6 @@
 # Spotify CLI Application
 
-A command-line interface for managing a Spotify-like music streaming service database using MySQL. This project was developed to fulfill the requirements for the Database Systems course project.
+A command-line interface for managing a Spotify-like music streaming service database using MySQL. The project was developed to fulfill the requirements for the Database Systems course project at Rowan University taught by Dominic Boccaleri.
 
 # Features
 
