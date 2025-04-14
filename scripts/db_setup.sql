@@ -52,3 +52,13 @@ CREATE TABLE items (
     FOREIGN KEY (playlist_id) REFERENCES playlists(id) ON DELETE CASCADE,
     FOREIGN KEY (track_id) REFERENCES tracks(id) ON DELETE CASCADE
 );
+
+CREATE INDEX idx_users_username ON users(username);
+CREATE INDEX idx_artists_name ON artists(name);
+CREATE INDEX idx_albums_title ON albums(title);
+CREATE INDEX idx_albums_artist_id ON albums(artist_id);
+CREATE INDEX idx_tracks_title ON tracks(title);
+CREATE INDEX idx_tracks_album_id ON tracks(album_id);
+CREATE INDEX idx_playlists_title ON playlists(title);
+CREATE INDEX idx_playlists_user_id ON playlists(user_id);
+CREATE INDEX idx_items_track_id ON items(track_id);
