@@ -22,8 +22,7 @@ type Config struct {
 }
 
 func NewMySQLClient(config Config) (*MySQLClient, error) {
-	// Initially connect without specifying a database
-	dsn := fmt.Sprintf("%s:%s@tcp(%s:%d)/",
+	dsn := fmt.Sprintf("%s:%s@tcp(%s:%d)/?multiStatements=true",
 		config.User, config.Password, config.Host, config.Port)
 
 	db, err := sql.Open("mysql", dsn)
@@ -31,12 +30,10 @@ func NewMySQLClient(config Config) (*MySQLClient, error) {
 		return nil, fmt.Errorf("error opening database connection: %v", err)
 	}
 
-	// Set connection pool settings
 	db.SetMaxOpenConns(10)
 	db.SetMaxIdleConns(5)
 	db.SetConnMaxLifetime(time.Hour)
 
-	// Check connection
 	if err := db.Ping(); err != nil {
 		return nil, fmt.Errorf("error connecting to MySQL: %v", err)
 	}
@@ -52,29 +49,23 @@ func (c *MySQLClient) GetDB() *sql.DB {
 	return c.db
 }
 
-func (c *MySQLClient) SetupDB(dbName string, sqlFilePath string) error {
-	// Create database if it doesn't exist
-	_, err := c.db.Exec(fmt.Sprintf("CREATE DATABASE IF NOT EXISTS %s", dbName))
-	if err != nil {
-		return fmt.Errorf("error creating database: %v", err)
+func (c *MySQLClient) SetupDB(dbName, sqlFilePath string) error {
+	row := c.db.QueryRow(
+		"SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = ?",
+		dbName,
+	)
+	var existingDB string
+	if err := row.Scan(&existingDB); err == nil && existingDB == dbName {
+		return nil
 	}
 
-	// Switch to the database
-	_, err = c.db.Exec(fmt.Sprintf("USE %s", dbName))
-	if err != nil {
-		return fmt.Errorf("error switching to database: %v", err)
-	}
-
-	// Run the SQL setup script
 	content, err := ioutil.ReadFile(sqlFilePath)
 	if err != nil {
 		return fmt.Errorf("error reading SQL file: %v", err)
 	}
-
 	_, err = c.db.Exec(string(content))
 	if err != nil {
 		return fmt.Errorf("error executing SQL setup: %v", err)
 	}
-
 	return nil
 }

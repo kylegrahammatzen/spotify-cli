@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"os"
 	"path/filepath"
@@ -14,8 +13,6 @@ import (
 )
 
 func main() {
-	fmt.Println("Starting Spotify CLI application...")
-
 	if err := godotenv.Load(); err != nil {
 		log.Println("Warning: .env file not found, using environment variables")
 	}
@@ -41,11 +38,9 @@ func main() {
 
 	scriptPath := filepath.Join("scripts", "db_setup.sql")
 	if _, err := os.Stat(scriptPath); err == nil {
-		fmt.Println("Setting up database...")
 		if err := client.SetupDB(dbConfig.DBName, scriptPath); err != nil {
 			log.Fatalf("Failed to set up database: %v", err)
 		}
-		fmt.Println("Database setup complete")
 	}
 
 	dbConn := client.GetDB()
