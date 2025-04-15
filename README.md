@@ -14,7 +14,7 @@ A command-line interface for managing a Spotify-like music streaming service dat
 
 1. Clone the repository
 2. Set up MySQL database using the provided schema file
-3. **Create a `.env` file** in the project's root directory to store your database credentials. An example `.env` might look like this:
+3. Create a `.env` file in the project's root directory to store your database credentials. An example `.env` might look like this:
 ```env
 DB_HOST=localhost
 DB_PORT=3306
