@@ -14,28 +14,37 @@ A command-line interface for managing a Spotify-like music streaming service dat
 
 1. Clone the repository
 2. Set up MySQL database using the provided schema file
-3. Build the application:
+3. **Create a `.env` file** in the project's root directory to store your database credentials. An example `.env` might look like this:
+```env
+DB_HOST=localhost
+DB_PORT=3306
+DB_USER=root
+DB_PASSWORD=password
+DB_NAME=spotifycli
+```
+4. Build the application:
 
-   For Windows:
-   ```
-   go build -o spotify-cli.exe ./cmd/cli
-   ```
+For Windows:
+```
+go build -o spotify-cli.exe ./cmd/cli
+```
 
-   For Mac:
-   ```
-   go build -o spotify-cli ./cmd/cli
-   ```
+For Mac:
+```
+go build -o spotify-cli ./cmd/cli
+```
 
-4. Run the application:
+5. Run the application:
 
-   For Windows:
-   ```
-   ./spotify-cli.exe [command]
-   ```
-   For Mac:
-   ```
-   ./spotify-cli [command]
-   ```
+For Windows:
+```
+./spotify-cli.exe [command]
+```
+
+For Mac:
+```
+./spotify-cli [command]
+```
 
 ## Usage
 
