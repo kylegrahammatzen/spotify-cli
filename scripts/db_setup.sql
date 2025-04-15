@@ -1,8 +1,3 @@
-DROP DATABASE IF EXISTS spotify_cli;
-
-CREATE DATABASE spotify_cli;
-USE spotify_cli;
-
 CREATE TABLE users (
     id INT AUTO_INCREMENT PRIMARY KEY,
     username VARCHAR(50) NOT NULL UNIQUE,

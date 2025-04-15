@@ -2,7 +2,9 @@ package repository
 
 import (
 	"database/sql"
+	"fmt"
 	"spotify-cli/internal/models"
+	"strings"
 )
 
 type UserRepository struct {
@@ -27,16 +29,41 @@ func (r *UserRepository) GetByID(id int) (*models.User, error) {
 }
 
 func (r *UserRepository) GetByUsername(username string) (*models.User, error) {
+	// Trim whitespace from the input
+	username = strings.TrimSpace(username)
+
+	// Optional debug logging
+	fmt.Println("Looking up user with username:", username)
+
 	query := "SELECT id, username, password, created_at FROM users WHERE username = ?"
 	row := r.db.QueryRow(query, username)
 
 	user := &models.User{}
 	err := row.Scan(&user.ID, &user.Username, &user.Password, &user.CreatedAt)
 	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, fmt.Errorf("user not found")
+		}
 		return nil, err
 	}
 
 	return user, nil
+}
+
+func (r *UserRepository) UsernameExists(username string) (bool, error) {
+	query := "SELECT 1 FROM users WHERE username = ? LIMIT 1"
+	row := r.db.QueryRow(query, username)
+
+	var exists int
+	err := row.Scan(&exists)
+	if err == sql.ErrNoRows {
+		return false, nil
+	}
+	if err != nil {
+		return false, err
+	}
+
+	return true, nil
 }
 
 func (r *UserRepository) Create(user *models.User) (int, error) {

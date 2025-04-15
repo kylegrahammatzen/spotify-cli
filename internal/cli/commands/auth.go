@@ -76,6 +76,14 @@ func RegisterCommand(repos *Repositories) *cli.Command {
 			username := c.String("username")
 			password := c.String("password")
 
+			exists, err := repos.UserRepo.UsernameExists(username)
+			if err != nil {
+				return fmt.Errorf("error checking username: %v", err)
+			}
+			if exists {
+				return fmt.Errorf("username '%s' is already taken", username)
+			}
+
 			user := &models.User{
 				Username: username,
 				Password: password,

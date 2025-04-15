@@ -38,6 +38,12 @@ func NewMySQLClient(config Config) (*MySQLClient, error) {
 		return nil, fmt.Errorf("error connecting to MySQL: %v", err)
 	}
 
+	// 🔥 Select the actual DB from config here
+	_, err = db.Exec(fmt.Sprintf("USE %s", config.DBName))
+	if err != nil {
+		return nil, fmt.Errorf("error selecting database: %v", err)
+	}
+
 	return &MySQLClient{db: db}, nil
 }
 
@@ -51,21 +57,30 @@ func (c *MySQLClient) GetDB() *sql.DB {
 
 func (c *MySQLClient) SetupDB(dbName, sqlFilePath string) error {
 	row := c.db.QueryRow(
-		"SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = ?",
+		"SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE LOWER(SCHEMA_NAME) = LOWER(?)",
 		dbName,
 	)
+
 	var existingDB string
-	if err := row.Scan(&existingDB); err == nil && existingDB == dbName {
+	err := row.Scan(&existingDB)
+	if err == nil && existingDB != "" {
 		return nil
+	} else if err != nil && err != sql.ErrNoRows {
+		return fmt.Errorf("error checking database existence: %v", err)
 	}
+
+	fmt.Printf("Database '%s' does not exist. Setting up using %s...\n", dbName, sqlFilePath)
 
 	content, err := ioutil.ReadFile(sqlFilePath)
 	if err != nil {
 		return fmt.Errorf("error reading SQL file: %v", err)
 	}
+
 	_, err = c.db.Exec(string(content))
 	if err != nil {
 		return fmt.Errorf("error executing SQL setup: %v", err)
 	}
+
+	fmt.Println("Database setup completed.")
 	return nil
 }
