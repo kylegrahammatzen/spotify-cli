@@ -13,7 +13,7 @@ import (
 )
 
 func main() {
-	if err := godotenv.Load(); err != nil {
+	if err := godotenv.Load("../../.env"); err != nil {
 		log.Println("Warning: .env file not found, using environment variables")
 	}
 
@@ -25,25 +25,21 @@ func main() {
 		DBName:   getEnv("DB_NAME", "spotify_cli"),
 	}
 
-	client, err := db.NewMySQLClient(dbConfig)
+	// Adjust scriptPath to point to the project root, not the cmd/cli folder.
+	scriptPath := filepath.Join(getProjectRoot(), "scripts", "db_setup.sql")
+
+	client, err := db.NewMySQLClient(dbConfig, scriptPath)
 	if err != nil {
 		log.Fatalf("Failed to connect to MySQL: %v", err)
 	}
-
 	defer func() {
 		if err := client.Close(); err != nil {
 			log.Printf("Error closing database connection: %v", err)
 		}
 	}()
 
-	scriptPath := filepath.Join("scripts", "db_setup.sql")
-	if _, err := os.Stat(scriptPath); err == nil {
-		if err := client.SetupDB(dbConfig.DBName, scriptPath); err != nil {
-			log.Fatalf("Failed to set up database: %v", err)
-		}
-	}
-
 	dbConn := client.GetDB()
+
 	userRepo := repository.NewUserRepository(dbConn)
 	artistRepo := repository.NewArtistRepository(dbConn)
 	albumRepo := repository.NewAlbumRepository(dbConn)
@@ -83,4 +79,27 @@ func getEnvAsInt(key string, defaultValue int) int {
 	}
 
 	return value
+}
+
+// getProjectRoot attempts to return the project root directory.
+// If you run from "cmd/cli", the project root is assumed to be two directories up.
+func getProjectRoot() string {
+	cwd, err := os.Getwd()
+	if err != nil {
+		log.Fatalf("Failed to get working directory: %v", err)
+	}
+
+	// Check if we're running from "cmd/cli".
+	// For example, if cwd is "D:\Projects\spotify-cli\cmd\cli"
+	// then filepath.Base(cwd) is "cli" and filepath.Base(filepath.Dir(cwd)) is "cmd".
+	if filepath.Base(cwd) == "cli" && filepath.Base(filepath.Dir(cwd)) == "cmd" {
+		projectRoot, err := filepath.Abs(filepath.Join(cwd, "..", ".."))
+		if err != nil {
+			log.Fatalf("Failed to determine project root: %v", err)
+		}
+		return projectRoot
+	}
+
+	// Otherwise, return the current working directory.
+	return cwd
 }
