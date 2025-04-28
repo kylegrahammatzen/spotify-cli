@@ -38,12 +38,19 @@ func NewMySQLClient(config Config) (*MySQLClient, error) {
 		return nil, fmt.Errorf("error connecting to MySQL: %v", err)
 	}
 
-	// 🔥 Select the actual DB from config here
+	// Create database if it doesn't exist
+	_, err = db.Exec(fmt.Sprintf("CREATE DATABASE IF NOT EXISTS %s", config.DBName))
+	if err != nil {
+		return nil, fmt.Errorf("error creating database: %v", err)
+	}
+
+	// Select the database
 	_, err = db.Exec(fmt.Sprintf("USE %s", config.DBName))
 	if err != nil {
 		return nil, fmt.Errorf("error selecting database: %v", err)
 	}
 
+	// db is already a *sql.DB, no need to dereference
 	return &MySQLClient{db: db}, nil
 }
 
